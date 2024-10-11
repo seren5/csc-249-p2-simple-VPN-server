@@ -17,8 +17,9 @@ def parse_message(message):
     message = message.decode("utf-8")
     # Parse the application-layer header into the destination SERVER_IP, destination SERVER_PORT,
     # and message to forward to that destination
-    raise NotImplementedError("Your job is to fill this function in. Remove this line when you're done.")
-    return SERVER_IP, SERVER_PORT, message
+    SERVER_IP, SERVER_PORT, equation = message.split('|')
+    # raise NotImplementedError("Your job is to fill this function in. Remove this line when you're done.")
+    return SERVER_IP, SERVER_PORT, equation
 
 ### INSTRUCTIONS ###
 # The VPN, like the server, must listen for connections from the client on IP address
@@ -31,3 +32,36 @@ def parse_message(message):
 
 # The VPN server must additionally print appropriate trace messages and send back to the
 # client appropriate error messages.
+print("vpn starting - listening for connections at IP", VPN_IP, "and port", VPN_PORT)
+with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as vpn_s:
+    VPN_PORT = int(VPN_PORT)
+    vpn_s.bind((VPN_IP, VPN_PORT))
+    vpn_s.listen()
+    client_conn, client_addr = vpn_s.accept()
+    with client_conn:
+        print(f"Connected established from {client_addr}")
+        while True:
+            data = client_conn.recv(1024) # Receives data from the client
+            if not data:
+                print("no data received from client") 
+                client_conn.sendall(b"Error: No data received.")
+                break # Breaks after receiving no data from client
+
+            server_ip, server_port, equation = parse_message(data)
+            print("forwarding message to server")
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_s:
+                try:
+                    server_port = int(server_port)
+                    server_s.connect((server_ip, server_port))
+                    print(f"connection established with server, sending message")
+                    
+                    server_s.sendall(bytes(equation, "utf-8"))
+                    print("message sent, waiting for reply")
+                    
+                    server_response = server_s.recv(1024).decode("utf-8")
+                    print(f"Received response: '{server_response} [{len(server_response)} bytes]")
+
+                    client_conn.sendall(bytes(server_response, "utf-8"))
+                except Exception as e:
+                    print(f"Error connecting to server: {e}")
+                    client_conn.sendall(b"Error: Could not connect to server.")
