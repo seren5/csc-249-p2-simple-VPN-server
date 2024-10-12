@@ -19,7 +19,7 @@ def parse_message(message):
     # and message to forward to that destination
     SERVER_IP, SERVER_PORT, equation = message.split('|')
     # raise NotImplementedError("Your job is to fill this function in. Remove this line when you're done.")
-    return SERVER_IP, SERVER_PORT, equation
+    return SERVER_IP, int(SERVER_PORT), equation
 
 ### INSTRUCTIONS ###
 # The VPN, like the server, must listen for connections from the client on IP address
@@ -42,16 +42,15 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as vpn_s:
         print(f"Connected established from {client_addr}")
         while True:
             data = client_conn.recv(1024) # Receives data from the client
-            # if not data:
-            #     print("no data received from client") 
-            #     client_conn.sendall(b"Error: No data received.")
-            #     break # Breaks after receiving no data from client
+            if not data:
+                print("no data received from client") 
+                client_conn.sendall(b"Error: No data received.")
+                break # Breaks after receiving no data from client
 
             server_ip, server_port, equation = parse_message(data)
             print("forwarding message to server")
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_s:
                 try:
-                    server_port = int(server_port)
                     server_s.connect((server_ip, server_port))
                     print(f"connection established with server, sending message")
                     
