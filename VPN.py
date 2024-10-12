@@ -63,6 +63,8 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as vpn_s:
                     if server_response:
                         print("sending result to client")
                         client_conn.sendall(bytes(server_response, "utf-8"))
+                        print("vpn is done!")
+                        exit(0)
 
                     else:
                         print("received empty reponse from server")
