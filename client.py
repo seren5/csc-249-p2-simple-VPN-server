@@ -28,7 +28,7 @@ print("client starting - connecting to VPN at IP", VPN_IP, "and port", VPN_PORT)
 
 exit_loop = False
 while exit_loop == False:
-    connection_choice = input("would you like to connect to basic math or other? (1 for basic math, 2 for other)    ")
+    connection_choice = input("would you like to connect to basic math or other? (1 for basic math, 2 for other, 3 to exit) [disclaimer: you can only connect to the server you run]    ")
     if connection_choice == "1":
         exit_loop_2 = False
         while exit_loop_2 == False:
@@ -48,10 +48,12 @@ while exit_loop == False:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.connect((VPN_IP, VPN_PORT))
             print(f"connection established, sending message '{encode_message(msg)}'")
-            MSG = encode_message(MSG)
-            s.sendall(bytes(MSG, 'utf-8'))
+            msg = encode_message(msg)
+            s.sendall(bytes(msg, 'utf-8'))
             print("message sent, waiting for reply")
             data = s.recv(1024).decode("utf-8")
+            break
+        break
     elif connection_choice == "2":
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.connect((VPN_IP, VPN_PORT))
@@ -61,17 +63,12 @@ while exit_loop == False:
             print("message sent, waiting for reply")
             data = s.recv(1024).decode("utf-8")
             break
+        break
+    elif connection_choice == "3":
+        exit(0)
     else:
         print("you have not selected a choice. please try again.")
-     
-    
-# with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-#     s.connect((VPN_IP, VPN_PORT))
-#     print(f"connection established, sending message '{encode_message(MSG)}'")
-#     MSG = encode_message(MSG)
-#     s.sendall(bytes(MSG, 'utf-8'))
-#     print("message sent, waiting for reply")
-#     data = s.recv(1024).decode("utf-8")
+
 
 print(f"Received response: '{data}' [{len(data)} bytes]")
 print("client is done!")
