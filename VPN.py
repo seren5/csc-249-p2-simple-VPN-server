@@ -18,7 +18,6 @@ def parse_message(message):
     # Parse the application-layer header into the destination SERVER_IP, destination SERVER_PORT,
     # and message to forward to that destination
     SERVER_IP, SERVER_PORT, equation = message.split('|')
-    # raise NotImplementedError("Your job is to fill this function in. Remove this line when you're done.")
     return SERVER_IP, int(SERVER_PORT), equation
 
 ### INSTRUCTIONS ###
@@ -33,43 +32,43 @@ def parse_message(message):
 # The VPN server must additionally print appropriate trace messages and send back to the
 # client appropriate error messages.
 print("vpn starting - listening for connections at IP", VPN_IP, "and port", VPN_PORT)
-with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as vpn_s:
-    VPN_PORT = int(VPN_PORT)
+with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as vpn_s: # Opens VPN socket for client to connect to 
+    VPN_PORT = int(VPN_PORT) # Turns port into integer
     vpn_s.bind((VPN_IP, VPN_PORT))
     vpn_s.listen()
     client_conn, client_addr = vpn_s.accept()
     with client_conn:
         print(f"Connected established from {client_addr}")
         while True:
-            data = client_conn.recv(1024) # Receives data from the client
-            if not data:
+            data = client_conn.recv(1024) # Receives data from the client (1024 => number of bytes)
+            if not data: # If the client sends no data
                 print("no data received from client") 
                 client_conn.sendall(b"Error: No data received.")
                 break # Breaks after receiving no data from client
 
-            server_ip, server_port, equation = parse_message(data)
+            server_ip, server_port, equation = parse_message(data)  # Parses data into IP, port, and message
             print("forwarding message to server")
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_s:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_s: # Creates server socket
                 try:
-                    server_s.connect((server_ip, server_port))
+                    server_s.connect((server_ip, server_port)) # Connects to server socket
                     print(f"connection established with server, sending message")
                     
-                    server_s.sendall(bytes(equation, "utf-8"))
+                    server_s.sendall(bytes(equation, "utf-8")) # Sends parsed message from client to server
                     print("message sent, waiting for reply")
                     
-                    server_response = server_s.recv(1024).decode("utf-8")
+                    server_response = server_s.recv(1024).decode("utf-8") # Decodes the message received from the server
                     print(f"Received response: '{server_response} [{len(server_response)} bytes]")
 
-                    if server_response:
+                    if server_response: # If server responds
                         print("sending result to client")
-                        client_conn.sendall(bytes(server_response, "utf-8"))
+                        client_conn.sendall(bytes(server_response, "utf-8")) # Sends server message to client
                         print("vpn is done!")
-                        exit(0)
+                        exit(0) # Exits progam
 
-                    else:
+                    else: # If the server doesn't respond
                         print("received empty reponse from server")
-                        client_conn.sendall(b"Error: Received empty response from server.")
+                        client_conn.sendall(b"Error: Received empty response from server.") # Informs client of empty response
 
-                except Exception as e:
+                except Exception as e: # Issues connecting to server
                     print(f"Error connecting to server: {e}")
-                    client_conn.sendall(b"Error: Could not connect to server.")
+                    client_conn.sendall(b"Error: Could not connect to server.") # Informs client of error connecting to server
